@@ -43,9 +43,7 @@ const Coleta = ({ navigation, route }) => {
                 const apiInstance = await api();
                 const response = await apiInstance.post(`/expedicao/inventario`, arrayInventario);
                 if (response.status === 201) {
-                    // Sucesso (status 201): exibe mensagem e faz outras ações necessárias
                     showMessage();
-                    console.log(arrayInventario);
                     setBarcode('');
                 } else if (response.status === 202) {
                     Alert.alert('Atualização', response.data.mensagem, [{ text: 'OK' }]);

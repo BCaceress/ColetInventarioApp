@@ -9,12 +9,12 @@ const MyModal = ({ visible, message, onClose }) => {
         if (visible) {
             Animated.timing(slideInAnimation, {
                 toValue: 1,
-                duration: 400,
+                duration: 230,
                 useNativeDriver: true,
             }).start(() => {
                 setTimeout(() => {
                     onClose();
-                }, 1200);
+                }, 850);
             });
         }
     }, [visible]);
