@@ -1,5 +1,6 @@
-import React, { useEffect, useState } from 'react';
+import React, { useCallback, useEffect, useState } from 'react';
 import {
+    ActivityIndicator,
     FlatList,
     SafeAreaView,
     StyleSheet,
@@ -9,49 +10,56 @@ import {
 } from 'react-native';
 import DateTimePickerModal from "react-native-modal-datetime-picker";
 import api from '../../services/api';
+
 const ListaUsuarios = ({ navigation }) => {
     const [isDatePickerVisible, setDatePickerVisibility] = useState(false);
     const [selectedDate, setSelectedDate] = useState(new Date());
     const [users, setUsers] = useState([]);
+    const [loading, setLoading] = useState(true);
 
-    useEffect(() => {
-        const fetchData = async () => {
-            const apiInstance = await api();
+    const fetchData = useCallback(async () => {
+        const apiInstance = await api();
 
-            try {
-                const usersResponse = await apiInstance.get('/expedicao/usuarios');
-                setUsers(usersResponse.data);
-            } catch (error) {
-                console.error('Erro ao obter dados da API:', error);
-            }
-        };
-        fetchData();
+        try {
+            const { data } = await apiInstance.get('/expedicao/usuarios');
+            setUsers(data);
+        } catch (error) {
+            console.error('Erro ao obter dados da API:', error);
+        } finally {
+            setLoading(false);
+        }
     }, []);
 
-    const showDatePicker = () => {
-        setDatePickerVisibility(true);
-    };
+    useEffect(() => {
+        fetchData();
+    }, [fetchData]);
 
-    const hideDatePicker = () => {
-        setDatePickerVisibility(false);
-    };
+    const showDatePicker = () => setDatePickerVisibility(true);
+    const hideDatePicker = () => setDatePickerVisibility(false);
 
     const handleConfirm = (date) => {
-        // console.warn("A date has been picked: ", date);
-        setSelectedDate(date); // Atualize o estado com a data selecionada
+        setSelectedDate(date);
         hideDatePicker();
     };
+
+    const renderItem = ({ item }) => (
+        <TouchableOpacity
+            style={styles.cartao}
+            onPress={() => {
+                navigation.navigate('Coleta', { nomeUsuario: item.USRID, date: selectedDate.toLocaleDateString() });
+            }}>
+            <View style={styles.informacoes}>
+                <Text style={styles.distancia}>{item.NOME}</Text>
+            </View>
+        </TouchableOpacity>
+    );
+
     return (
         <SafeAreaView style={styles.container}>
             <View style={styles.containerCentral}>
                 <View>
-                    <Text style={styles.label}>
-                        Selecione a data
-                    </Text>
-
-                    <TouchableOpacity style={styles.button}
-                        onPress={showDatePicker}
-                    >
+                    <Text style={styles.label}>Selecione a data</Text>
+                    <TouchableOpacity style={styles.button} onPress={showDatePicker}>
                         <Text style={styles.buttonText}>Data Selecionada: {selectedDate.toLocaleDateString()}</Text>
                     </TouchableOpacity>
                     <DateTimePickerModal
@@ -63,24 +71,16 @@ const ListaUsuarios = ({ navigation }) => {
                     />
                 </View>
                 <View>
-                    <Text style={styles.label}>
-                        Selecione o usuário
-                    </Text>
-                    <FlatList
-                        data={users}
-                        keyExtractor={item => item.USRID}
-                        renderItem={({ item }) => (
-                            <TouchableOpacity
-                                style={styles.cartao}
-                                onPress={() => {
-                                    navigation.navigate('Coleta', { nomeUsuario: item.USRID, date: selectedDate.toLocaleDateString() });
-                                }}>
-                                <View style={styles.informacoes}>
-                                    <Text style={styles.distancia}>{item.NOME}</Text>
-                                </View>
-                            </TouchableOpacity>
-                        )}
-                    />
+                    <Text style={styles.label}>Selecione o usuário</Text>
+                    {loading ? (
+                        <ActivityIndicator size="large" color="#09A08D" />
+                    ) : (
+                        <FlatList
+                            data={users}
+                            keyExtractor={item => item.USRID.toString()}
+                            renderItem={renderItem}
+                        />
+                    )}
                 </View>
             </View>
         </SafeAreaView>
@@ -94,9 +94,7 @@ const styles = StyleSheet.create({
     },
     containerCentral: {
         flex: 1,
-        marginStart: 14,
-        marginEnd: 14,
-
+        marginHorizontal: 14,
     },
     label: {
         fontSize: 14,
@@ -109,7 +107,7 @@ const styles = StyleSheet.create({
         backgroundColor: '#09A08D',
         borderRadius: 5,
         margin: 8,
-        padding: 10
+        padding: 10,
     },
     buttonText: {
         color: 'white',
@@ -134,6 +132,6 @@ const styles = StyleSheet.create({
         marginVertical: 16,
         marginRight: 16,
     },
-
 });
+
 export default ListaUsuarios;

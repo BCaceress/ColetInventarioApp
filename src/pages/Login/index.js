@@ -9,6 +9,7 @@ import {
   TouchableOpacity,
   View,
 } from 'react-native';
+import packageJson from '../../../package.json';
 import api from '../../services/api.js';
 const Login = ({ navigation }) => {
   const [estaConectado, setEstaConectado] = useState(false);
@@ -68,7 +69,7 @@ const Login = ({ navigation }) => {
         </TouchableOpacity>
       </View>
       <View style={styles.containerInferior}>
-        <Text style={styles.versao}>Versão 1.24.2806</Text>
+        <Text style={styles.versao}>Versão {packageJson.version}</Text>
         <TouchableOpacity
           style={styles.btnConfig}
           onPress={() => {
